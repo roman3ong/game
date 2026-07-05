@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>有选择回复 · 评论系统</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", sans-serif;
+      background: #f5f5f5;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+    }
+
+    .phone-frame {
+      width: 390px;
+      min-height: 100vh;
+      background: #fff;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* ── Top bar ── */
+    .top-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 16px 10px;
+      border-bottom: 1px solid #f0f0f0;
+      position: sticky;
+      top: 0;
+      background: #fff;
+      z-index: 10;
+    }
+    .top-bar .back { font-size: 22px; color: #333; cursor: pointer; }
+    .top-bar .profile { display: flex; align-items: center; gap: 8px; }
+    .top-bar .avatar {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      display: flex; align-items: center; justify-content: center;
+      color: #fff; font-size: 13px; font-weight: 600;
+    }
+    .top-bar .username { font-size: 15px; font-weight: 600; color: #1a1a1a; }
+    .top-bar .share-btn {
+      display: flex; align-items: center; gap: 4px;
+      font-size: 13px; color: #666;
+    }
+
+    /* ── Post header ── */
+    .post-header {
+      padding: 12px 16px 10px;
+      border-bottom: 1px solid #f5f5f5;
+    }
+    .post-header h2 { font-size: 16px; font-weight: 700; color: #1a1a1a; line-height: 1.5; }
+    .post-header p { font-size: 13px; color: #888; margin-top: 4px; line-height: 1.6; }
+
+    /* ── Toolbar strip ── */
+    .toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 16px;
+      border-bottom: 1px solid #f0f0f0;
+      background: #fafafa;
+    }
+    .toolbar .stats { display: flex; gap: 16px; font-size: 13px; color: #888; }
+    .toolbar .stats span { display: flex; align-items: center; gap: 4px; }
+
+    /* ── Batch controls ── */
+    .batch-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 16px;
+      background: #fff8f0;
+      border-bottom: 1px solid #ffe4b5;
+      font-size: 13px;
+    }
+    .batch-bar.hidden { display: none; }
+    .batch-bar .select-all {
+      display: flex; align-items: center; gap: 6px; color: #e8851a; cursor: pointer;
+    }
+    .batch-bar .select-count { color: #888; }
+    .batch-bar .reply-selected-btn {
+      background: #e8851a; color: #fff;
+      border: none; border-radius: 16px;
+      padding: 5px 14px; font-size: 13px;
+      cursor: pointer; font-weight: 600;
+    }
+    .batch-bar .reply-selected-btn:disabled {
+      background: #ddd; color: #aaa; cursor: not-allowed;
+    }
+
+    /* ── Select mode toggle ── */
+    .select-mode-btn {
+      background: none; border: 1px solid #e8851a;
+      color: #e8851a; border-radius: 14px;
+      padding: 4px 12px; font-size: 12px;
+      cursor: pointer; font-weight: 500;
+    }
+    .select-mode-btn.active {
+      background: #e8851a; color: #fff;
+    }
+
+    /* ── Comment list ── */
+    .comments-section { padding: 0 0 80px; }
+
+    .section-label {
+      font-size: 12px; color: #aaa;
+      padding: 10px 16px 6px;
+      letter-spacing: 0.5px;
+    }
+
+    .comment-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 12px 16px;
+      border-bottom: 1px solid #f5f5f5;
+      position: relative;
+      transition: background 0.15s;
+      cursor: default;
+    }
+    .comment-item.selectable { cursor: pointer; }
+    .comment-item.selected { background: #fff8f0; }
+    .comment-item:hover.selectable { background: #fafafa; }
+
+    /* Selection checkbox */
+    .comment-item .check-wrap {
+      display: none;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .select-mode .comment-item .check-wrap { display: flex; }
+    .check-box {
+      width: 20px; height: 20px; border-radius: 50%;
+      border: 2px solid #ccc;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; color: transparent;
+      transition: all 0.15s;
+    }
+    .comment-item.selected .check-box {
+      background: #e8851a; border-color: #e8851a; color: #fff;
+    }
+
+    .comment-avatar {
+      width: 36px; height: 36px; border-radius: 50%;
+      flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; font-weight: 600; color: #fff;
+    }
+    .comment-body { flex: 1; min-width: 0; }
+    .comment-meta {
+      display: flex; align-items: baseline; gap: 6px; margin-bottom: 2px;
+    }
+    .comment-author { font-size: 13px; font-weight: 600; color: #444; }
+    .comment-author.author-badge {
+      color: #e8851a;
+    }
+    .author-tag {
+      font-size: 10px; background: #e8851a; color: #fff;
+      padding: 1px 4px; border-radius: 3px; font-weight: 500;
+    }
+    .comment-text {
+      font-size: 14px; color: #1a1a1a; line-height: 1.55;
+      word-break: break-all;
+    }
+    .comment-text .mention { color: #e8851a; }
+    .comment-footer {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-top: 6px;
+    }
+    .comment-time { font-size: 11px; color: #bbb; }
+    .comment-actions { display: flex; align-items: center; gap: 14px; }
+    .action-btn {
+      display: flex; align-items: center; gap: 3px;
+      font-size: 12px; color: #bbb;
+      background: none; border: none; cursor: pointer;
+      padding: 0;
+    }
+    .action-btn:hover { color: #888; }
+    .action-btn.liked { color: #e8851a; }
+    .action-btn svg { width: 14px; height: 14px; }
+
+    /* inline reply ── */
+    .inline-reply-area {
+      display: none;
+      margin-top: 8px;
+      background: #f9f9f9;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .inline-reply-area.open { display: block; }
+    .inline-reply-area textarea {
+      width: 100%; border: none; outline: none;
+      background: transparent;
+      font-size: 13px; color: #333;
+      padding: 8px 10px; resize: none;
+      min-height: 60px;
+      font-family: inherit;
+    }
+    .inline-reply-footer {
+      display: flex; justify-content: flex-end;
+      padding: 4px 8px 6px;
+      gap: 8px;
+    }
+    .cancel-reply-btn {
+      background: none; border: 1px solid #ddd;
+      color: #888; border-radius: 14px;
+      padding: 4px 12px; font-size: 12px;
+      cursor: pointer;
+    }
+    .send-reply-btn {
+      background: #e8851a; color: #fff;
+      border: none; border-radius: 14px;
+      padding: 4px 14px; font-size: 12px;
+      cursor: pointer; font-weight: 600;
+    }
+    .send-reply-btn:disabled { background: #ddd; color: #aaa; cursor: not-allowed; }
+
+    /* sub-replies */
+    .sub-replies { margin-top: 6px; padding-left: 0; }
+    .sub-reply {
+      display: flex; gap: 8px;
+      padding: 6px 0;
+      border-top: 1px solid #f0f0f0;
+    }
+    .sub-reply-avatar {
+      width: 24px; height: 24px; border-radius: 50%;
+      flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 10px; font-weight: 600; color: #fff;
+    }
+    .sub-reply-body .author { font-size: 12px; font-weight: 600; color: #555; }
+    .sub-reply-body .text { font-size: 13px; color: #1a1a1a; line-height: 1.5; }
+    .sub-reply-body .time { font-size: 11px; color: #ccc; margin-top: 2px; }
+
+    /* ── Batch reply modal ── */
+    .modal-overlay {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.45);
+      z-index: 100;
+      align-items: flex-end;
+      justify-content: center;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal-sheet {
+      width: 390px;
+      background: #fff;
+      border-radius: 18px 18px 0 0;
+      padding: 0 0 30px;
+      max-height: 80vh;
+      overflow-y: auto;
+      animation: slideUp 0.25s ease;
+    }
+    @keyframes slideUp {
+      from { transform: translateY(100%); }
+      to { transform: translateY(0); }
+    }
+    .modal-handle {
+      width: 36px; height: 4px; background: #ddd; border-radius: 2px;
+      margin: 12px auto 6px;
+    }
+    .modal-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 16px;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    .modal-header h3 { font-size: 15px; font-weight: 700; }
+    .modal-close {
+      background: none; border: none; font-size: 20px;
+      color: #aaa; cursor: pointer; line-height: 1;
+    }
+    .selected-preview {
+      padding: 10px 16px;
+      border-bottom: 1px solid #f5f5f5;
+    }
+    .selected-preview-label {
+      font-size: 12px; color: #aaa; margin-bottom: 8px;
+    }
+    .selected-chip {
+      display: inline-flex; align-items: center; gap: 4px;
+      background: #fff5e6; border: 1px solid #ffd699;
+      border-radius: 12px; padding: 3px 10px;
+      font-size: 12px; color: #c87000;
+      margin: 3px 4px 3px 0;
+    }
+    .selected-chip .chip-remove {
+      cursor: pointer; font-size: 13px; color: #e8851a;
+      line-height: 1;
+    }
+    .modal-textarea-wrap { padding: 10px 16px; }
+    .modal-textarea-wrap textarea {
+      width: 100%; border: 1px solid #eee;
+      border-radius: 10px; outline: none;
+      font-size: 14px; color: #333;
+      padding: 10px 12px; resize: none;
+      min-height: 90px;
+      font-family: inherit;
+      background: #fafafa;
+    }
+    .modal-textarea-wrap textarea:focus { border-color: #e8851a; background: #fff; }
+    .modal-actions {
+      display: flex; justify-content: flex-end;
+      padding: 4px 16px;
+      gap: 10px;
+    }
+    .modal-cancel-btn {
+      background: none; border: 1px solid #ddd;
+      color: #888; border-radius: 20px;
+      padding: 8px 20px; font-size: 14px;
+      cursor: pointer;
+    }
+    .modal-send-btn {
+      background: #e8851a; color: #fff;
+      border: none; border-radius: 20px;
+      padding: 8px 24px; font-size: 14px;
+      cursor: pointer; font-weight: 600;
+    }
+    .modal-send-btn:disabled { background: #ddd; color: #aaa; cursor: not-allowed; }
+
+    /* ── Bottom bar ── */
+    .bottom-bar {
+      position: fixed; bottom: 0;
+      width: 390px;
+      background: #fff;
+      border-top: 1px solid #f0f0f0;
+      padding: 10px 16px 16px;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .bottom-input {
+      flex: 1; border: 1px solid #eee; border-radius: 20px;
+      padding: 8px 14px; font-size: 14px;
+      outline: none; background: #fafafa;
+      font-family: inherit; color: #333;
+    }
+    .bottom-input:focus { border-color: #e8851a; background: #fff; }
+    .bottom-actions { display: flex; gap: 12px; align-items: center; }
+    .bottom-icon { font-size: 20px; color: #888; cursor: pointer; }
+
+    /* toast */
+    .toast {
+      position: fixed; bottom: 80px; left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: rgba(0,0,0,0.75); color: #fff;
+      padding: 8px 18px; border-radius: 20px;
+      font-size: 13px; opacity: 0;
+      transition: all 0.25s;
+      z-index: 200;
+      white-space: nowrap;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  </style>
+</head>
+<body>
+<div class="phone-frame">
+
+  <!-- Top bar -->
+  <div class="top-bar">
+    <span class="back">‹</span>
+    <div class="profile">
+      <div class="avatar">K</div>
+      <span class="username">knessing</span>
+    </div>
+    <div class="share-btn">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+      3
+    </div>
+  </div>
+
+  <!-- Post header -->
+  <div class="post-header">
+    <h2>新款 X5 这大灯，真不像宝马该有的水平</h2>
+    <p>说实话，新款 X5 原厂大灯我第一眼就觉得扭。不是丑到不能看，而是配不上 X5 这个级别。</p>
+  </div>
+
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <div class="stats">
+      <span>❤️ 18</span>
+      <span>☆ 5</span>
+      <span>💬 <span id="comment-count">41</span></span>
+    </div>
+    <button class="select-mode-btn" id="selectModeBtn" onclick="toggleSelectMode()">选择回复</button>
+  </div>
+
+  <!-- Batch bar -->
+  <div class="batch-bar hidden" id="batchBar">
+    <label class="select-all" onclick="toggleSelectAll()">
+      <div class="check-box" id="selectAllBox">✓</div>
+      全选
+    </label>
+    <span class="select-count" id="selectCount">已选 0 条</span>
+    <button class="reply-selected-btn" id="replySelectedBtn" disabled onclick="openBatchModal()">回复所选</button>
+  </div>
+
+  <!-- Comments -->
+  <div class="comments-section" id="commentsSection">
+    <div class="section-label">全部评论</div>
+  </div>
+
+  <!-- Bottom bar -->
+  <div class="bottom-bar">
+    <input class="bottom-input" placeholder="说点什么…" id="mainInput" />
+    <div class="bottom-actions">
+      <span class="bottom-icon">😊</span>
+      <span class="bottom-icon" onclick="sendMainComment()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="#e8851a"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg>
+      </span>
+    </div>
+  </div>
+</div>
+
+<!-- Batch reply modal -->
+<div class="modal-overlay" id="batchModal">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <h3>批量回复所选评论</h3>
+      <button class="modal-close" onclick="closeBatchModal()">×</button>
+    </div>
+    <div class="selected-preview">
+      <div class="selected-preview-label">已选评论用户</div>
+      <div id="selectedChips"></div>
+    </div>
+    <div class="modal-textarea-wrap">
+      <textarea id="batchReplyText" placeholder="输入回复内容，将发送给所有选中的评论…" oninput="updateModalSendBtn()"></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="modal-cancel-btn" onclick="closeBatchModal()">取消</button>
+      <button class="modal-send-btn" id="modalSendBtn" disabled onclick="sendBatchReply()">发送回复</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── Data ──────────────────────────────────────────────────────────────────
+const AVATAR_COLORS = [
+  '#5c6bc0','#26a69a','#66bb6a','#ef5350','#ab47bc',
+  '#42a5f5','#ffa726','#8d6e63','#78909c','#ec407a'
+];
+
+const commentsData = [
+  {
+    id: 1, author: '東京物語',
+    text: '改成你这种，就类似于某些国产车的感觉，宝马的设计不能说有多好看，但是，新颖。',
+    time: '昨天 下午 5:50', location: '广东', likes: 14,
+    replies: [
+      { id: 11, author: '源春米粉（扬大店）', text: '确实🥹', time: '昨天 下午 7:46', location: '江苏' }
+    ]
+  },
+  {
+    id: 2, author: '我在赤道穿棉袄',
+    text: '你做的只有日行灯，大灯没有地方布置',
+    time: '昨天 下午 4:24', location: '河南', likes: 0,
+    replies: [
+      { id: 21, author: '小红薯654069EB', text: '你是对的', time: '42分钟前', location: '广东' }
+    ]
+  },
+  {
+    id: 3, author: '康翔宇', text: '原版好看',
+    time: '昨天 下午 5:41', location: '山东', likes: 4, replies: []
+  },
+  {
+    id: 4, author: '李大招（嘉兴上海别墅石材）', text: '改完就是土',
+    time: '7小时前', location: '浙江', likes: 0, replies: []
+  },
+  {
+    id: 5, author: 'Kyle_Hendrick', text: '前面和 twitter 设计一个风格就难绷…',
+    time: '3小时前', location: '北京', likes: 0, replies: []
+  },
+  {
+    id: 6, author: '神经蛙', text: '我站原版',
+    time: '昨天 下午 6:36', location: '辽宁', likes: 2, replies: []
+  },
+  {
+    id: 7, author: '小红薯路飞',
+    text: '你说的缺点很对，改版稍微差点意思，再出一版吧🤕',
+    time: '8小时前', location: '河北', likes: 0, replies: []
+  },
+  {
+    id: 8, author: '嗯嗯', text: '原版好看',
+    time: '昨天 下午 5:16', location: '辽宁', likes: 2, replies: []
+  },
+  {
+    id: 9, author: 'Mc 丞少',
+    text: '我觉得 <span class="mention">原版前大灯</span>🔍，配你改的尾灯，是不错的！',
+    time: '昨天 下午 11:39', location: '广东', likes: 0, replies: []
+  },
+  {
+    id: 10, author: '东子', text: '嗯，真别说还，顺眼多了',
+    time: '昨天 下午 3:54', location: '湖南', likes: 1, replies: []
+  },
+  {
+    id: 11, author: '狮子王', text: '国产新能源设计赶上来了呗🐷',
+    time: '8小时前', location: '海南', likes: 0, replies: []
+  },
+  {
+    id: 12, author: '在朝阳北路上堵着呢', text: '总之原版的大灯设计挺拉的',
+    time: '昨天 下午 5:35', location: '北京', likes: 0, replies: []
+  },
+  {
+    id: 13, author: 'knessing', isAuthor: true,
+    text: '你觉得哪个版本 X 大灯更好看？',
+    time: '昨天 下午 3:38', location: '广东', likes: 0, replies: [
+      { id: 131, author: '小白鸽',
+        text: '前面一看就是配合棱角攻击感，后面线条律动感。你这个 AI 版本改完之后，就是一种廉价视角…真正的设计超越趋势',
+        time: '昨天 下午 4:21', location: '意大利' }
+    ]
+  },
+  {
+    id: 14, author: 'Jason▪️', text: 'BYD应该把你招走',
+    time: '5小时前', location: '美国', likes: 0, replies: []
+  },
+  {
+    id: 15, author: '罗吉姆哈',
+    text: '你这种改的白扯。<span class="mention">宝马创新</span>🔍，新科技。',
+    time: '昨天 下午 11:40', location: '海南', likes: 0, replies: []
+  },
+  {
+    id: 16, author: '海滨野炊', text: 'after 之后像一头猪嘿了🤩',
+    time: '昨天 下午 9:18', location: '上海', likes: 0, replies: []
+  },
+  {
+    id: 17, author: '乐不狼.狗特', text: '丑的不是灯，是猪鼻孔啊！',
+    time: '昨天 下午 6:08', location: '北京', likes: 0, replies: []
+  },
+];
+
+// ── State ─────────────────────────────────────────────────────────────────
+let selectMode = false;
+let selectedIds = new Set();
+let likedIds = new Set();
+let openReplyId = null;
+let comments = JSON.parse(JSON.stringify(commentsData));
+
+function getAvatarColor(name) {
+  let h = 0;
+  for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) & 0xffffff;
+  return AVATAR_COLORS[Math.abs(h) % AVATAR_COLORS.length];
+}
+function initials(name) { return name.replace(/[^\u4e00-\u9fa5a-zA-Z]/g, '').slice(0, 2) || name.slice(0, 2); }
+
+// ── Render ────────────────────────────────────────────────────────────────
+function render() {
+  const container = document.getElementById('commentsSection');
+  const label = container.querySelector('.section-label');
+  container.innerHTML = '';
+  container.appendChild(label);
+
+  if (selectMode) container.classList.add('select-mode');
+  else container.classList.remove('select-mode');
+
+  comments.forEach(c => {
+    const el = buildCommentEl(c);
+    container.appendChild(el);
+  });
+  document.getElementById('comment-count').textContent = comments.length;
+}
+
+function buildCommentEl(c) {
+  const wrap = document.createElement('div');
+  wrap.className = 'comment-item' + (selectMode ? ' selectable' : '') + (selectedIds.has(c.id) ? ' selected' : '');
+  wrap.dataset.id = c.id;
+
+  if (selectMode) {
+    wrap.addEventListener('click', () => toggleSelect(c.id));
+  }
+
+  const checkWrap = `<div class="check-wrap"><div class="check-box">${selectedIds.has(c.id) ? '✓' : ''}</div></div>`;
+  const avatarBg = getAvatarColor(c.author);
+  const avatar = `<div class="comment-avatar" style="background:${avatarBg}">${initials(c.author)}</div>`;
+
+  const authorClass = c.isAuthor ? 'comment-author author-badge' : 'comment-author';
+  const authorTag = c.isAuthor ? '<span class="author-tag">作者</span>' : '';
+
+  const subRepliesHtml = (c.replies || []).map(r => `
+    <div class="sub-reply">
+      <div class="sub-reply-avatar" style="background:${getAvatarColor(r.author)}">${initials(r.author)}</div>
+      <div class="sub-reply-body">
+        <div class="author">${escHtml(r.author)}</div>
+        <div class="text">${escHtml(r.text)}</div>
+        <div class="time">${r.time} · ${r.location}</div>
+      </div>
+    </div>`).join('');
+
+  const replyAreaOpen = openReplyId === c.id;
+
+  wrap.innerHTML = `
+    ${checkWrap}
+    ${avatar}
+    <div class="comment-body">
+      <div class="comment-meta">
+        <span class="${authorClass}">${escHtml(c.author)}</span>
+        ${authorTag}
+      </div>
+      <div class="comment-text">${c.text}</div>
+      <div class="comment-footer">
+        <span class="comment-time">${c.time} · ${c.location}</span>
+        <div class="comment-actions">
+          <button class="action-btn${likedIds.has(c.id) ? ' liked' : ''}" data-action="like" data-id="${c.id}">
+            <svg viewBox="0 0 24 24" fill="${likedIds.has(c.id) ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2">
+              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+            </svg>
+            ${(c.likes || 0) + (likedIds.has(c.id) ? 1 : 0)}
+          </button>
+          <button class="action-btn" data-action="reply" data-id="${c.id}">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+            </svg>
+            回复
+          </button>
+        </div>
+      </div>
+      <div class="inline-reply-area${replyAreaOpen ? ' open' : ''}" id="reply-area-${c.id}">
+        <textarea placeholder="回复 @${escAttr(c.author)}…" id="reply-input-${c.id}"></textarea>
+        <div class="inline-reply-footer">
+          <button class="cancel-reply-btn" data-action="cancel-reply" data-id="${c.id}">取消</button>
+          <button class="send-reply-btn" data-action="send-reply" data-id="${c.id}">发送</button>
+        </div>
+      </div>
+      ${subRepliesHtml ? `<div class="sub-replies">${subRepliesHtml}</div>` : ''}
+    </div>`;
+
+  // Delegate click events inside comment
+  wrap.addEventListener('click', e => {
+    if (selectMode) return; // handled by wrap click
+    const btn = e.target.closest('[data-action]');
+    if (!btn) return;
+    e.stopPropagation();
+    const action = btn.dataset.action;
+    const id = parseInt(btn.dataset.id);
+    if (action === 'like') handleLike(id);
+    else if (action === 'reply') handleReply(id);
+    else if (action === 'cancel-reply') handleCancelReply(id);
+    else if (action === 'send-reply') handleSendReply(id);
+  });
+
+  return wrap;
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+function escAttr(s) {
+  return String(s).replace(/"/g,'&quot;');
+}
+
+// ── Actions ───────────────────────────────────────────────────────────────
+function handleLike(id) {
+  if (likedIds.has(id)) likedIds.delete(id);
+  else likedIds.add(id);
+  render();
+}
+
+function handleReply(id) {
+  openReplyId = openReplyId === id ? null : id;
+  render();
+  if (openReplyId) {
+    const ta = document.getElementById(`reply-input-${id}`);
+    if (ta) ta.focus();
+  }
+}
+
+function handleCancelReply(id) {
+  openReplyId = null;
+  render();
+}
+
+function handleSendReply(id) {
+  const ta = document.getElementById(`reply-input-${id}`);
+  const text = ta ? ta.value.trim() : '';
+  if (!text) { showToast('请输入回复内容'); return; }
+  const c = comments.find(x => x.id === id);
+  if (c) {
+    c.replies = c.replies || [];
+    c.replies.push({
+      id: Date.now(), author: 'knessing',
+      text, time: '刚刚', location: '广东'
+    });
+  }
+  openReplyId = null;
+  render();
+  showToast('回复已发送');
+}
+
+function toggleSelectMode() {
+  selectMode = !selectMode;
+  selectedIds.clear();
+  openReplyId = null;
+  const btn = document.getElementById('selectModeBtn');
+  const bar = document.getElementById('batchBar');
+  if (selectMode) {
+    btn.textContent = '取消选择';
+    btn.classList.add('active');
+    bar.classList.remove('hidden');
+  } else {
+    btn.textContent = '选择回复';
+    btn.classList.remove('active');
+    bar.classList.add('hidden');
+  }
+  updateBatchBar();
+  render();
+}
+
+function toggleSelect(id) {
+  if (selectedIds.has(id)) selectedIds.delete(id);
+  else selectedIds.add(id);
+  updateBatchBar();
+  render();
+}
+
+function toggleSelectAll() {
+  if (selectedIds.size === comments.length) {
+    selectedIds.clear();
+  } else {
+    comments.forEach(c => selectedIds.add(c.id));
+  }
+  updateBatchBar();
+  render();
+}
+
+function updateBatchBar() {
+  const n = selectedIds.size;
+  document.getElementById('selectCount').textContent = `已选 ${n} 条`;
+  const btn = document.getElementById('replySelectedBtn');
+  btn.disabled = n === 0;
+  const box = document.getElementById('selectAllBox');
+  if (selectedIds.size === comments.length && comments.length > 0) {
+    box.textContent = '✓';
+    box.style.background = '#e8851a';
+    box.style.borderColor = '#e8851a';
+    box.style.color = '#fff';
+  } else {
+    box.textContent = '';
+    box.style.background = '';
+    box.style.borderColor = '';
+    box.style.color = '';
+  }
+}
+
+function openBatchModal() {
+  const chips = document.getElementById('selectedChips');
+  chips.innerHTML = '';
+  selectedIds.forEach(id => {
+    const c = comments.find(x => x.id === id);
+    if (!c) return;
+    const chip = document.createElement('span');
+    chip.className = 'selected-chip';
+    chip.innerHTML = `@${escHtml(c.author)} <span class="chip-remove" data-id="${id}">×</span>`;
+    chip.querySelector('.chip-remove').addEventListener('click', e => {
+      e.stopPropagation();
+      selectedIds.delete(id);
+      updateBatchBar();
+      openBatchModal(); // re-render chips
+    });
+    chips.appendChild(chip);
+  });
+  if (selectedIds.size === 0) { closeBatchModal(); return; }
+  document.getElementById('batchModal').classList.add('open');
+  document.getElementById('batchReplyText').value = '';
+  updateModalSendBtn();
+}
+
+function closeBatchModal() {
+  document.getElementById('batchModal').classList.remove('open');
+}
+
+function updateModalSendBtn() {
+  const v = document.getElementById('batchReplyText').value.trim();
+  document.getElementById('modalSendBtn').disabled = !v || selectedIds.size === 0;
+}
+
+function sendBatchReply() {
+  const text = document.getElementById('batchReplyText').value.trim();
+  if (!text) return;
+  selectedIds.forEach(id => {
+    const c = comments.find(x => x.id === id);
+    if (c) {
+      c.replies = c.replies || [];
+      c.replies.push({
+        id: Date.now() + Math.random(),
+        author: 'knessing',
+        text,
+        time: '刚刚', location: '广东'
+      });
+    }
+  });
+  const count = selectedIds.size;
+  selectedIds.clear();
+  toggleSelectMode(); // exit select mode
+  closeBatchModal();
+  render();
+  showToast(`已向 ${count} 条评论发送回复`);
+}
+
+function sendMainComment() {
+  const inp = document.getElementById('mainInput');
+  const text = inp.value.trim();
+  if (!text) return;
+  comments.unshift({
+    id: Date.now(), author: 'knessing', isAuthor: true,
+    text, time: '刚刚', location: '广东', likes: 0, replies: []
+  });
+  inp.value = '';
+  render();
+  showToast('评论已发布');
+  document.getElementById('commentsSection').scrollIntoView({ behavior: 'smooth' });
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+// Close modal when clicking overlay
+document.getElementById('batchModal').addEventListener('click', e => {
+  if (e.target === document.getElementById('batchModal')) closeBatchModal();
+});
+
+// ── Init ──────────────────────────────────────────────────────────────────
+render();
+</script>
+</body>
+</html>
