@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#0a0e27">
+  <title>星际宠物 · Star Pets</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div id="stars-bg"></div>
+
+  <!-- 欢迎 / 选宠 -->
+  <section id="screen-welcome" class="screen active">
+    <div class="welcome-content">
+      <div class="logo">✦ 星际宠物 ✦</div>
+      <p class="subtitle">在浩瀚宇宙中，孵化你的专属伙伴</p>
+      <div class="egg-container" id="egg-container">
+        <div class="cosmic-egg" id="cosmic-egg">
+          <div class="egg-glow"></div>
+          <div class="egg-body">🥚</div>
+        </div>
+        <p class="tap-hint" id="tap-hint">点击蛋来孵化</p>
+      </div>
+      <div class="pet-select hidden" id="pet-select">
+        <h2>选择你的星际伙伴</h2>
+        <div class="pet-cards" id="pet-cards"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 主游戏 -->
+  <section id="screen-game" class="screen">
+    <header class="game-header">
+      <div class="pet-info">
+        <span class="pet-name" id="display-name">星尘兽</span>
+        <span class="pet-level">Lv.<span id="display-level">1</span></span>
+      </div>
+      <div class="coins">
+        <span>⭐</span>
+        <span id="display-coins">0</span>
+      </div>
+    </header>
+
+    <div class="planet-scene">
+      <div class="planet"></div>
+      <div class="pet-stage" id="pet-stage">
+        <div class="pet-sprite" id="pet-sprite">🌟</div>
+        <div class="pet-mood-bubble hidden" id="mood-bubble"></div>
+        <div class="particles" id="particles"></div>
+      </div>
+    </div>
+
+    <!-- 状态条 -->
+    <div class="stats-panel">
+      <div class="stat-row">
+        <span class="stat-icon">🍖</span>
+        <div class="stat-bar"><div class="stat-fill hunger" id="bar-hunger"></div></div>
+        <span class="stat-val" id="val-hunger">100</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-icon">💜</span>
+        <div class="stat-bar"><div class="stat-fill mood" id="bar-mood"></div></div>
+        <span class="stat-val" id="val-mood">100</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-icon">⚡</span>
+        <div class="stat-bar"><div class="stat-fill energy" id="bar-energy"></div></div>
+        <span class="stat-val" id="val-energy">100</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-icon">❤️</span>
+        <div class="stat-bar"><div class="stat-fill health" id="bar-health"></div></div>
+        <span class="stat-val" id="val-health">100</span>
+      </div>
+      <div class="exp-row">
+        <span>EXP</span>
+        <div class="exp-bar"><div class="exp-fill" id="bar-exp"></div></div>
+      </div>
+    </div>
+
+    <!-- 操作按钮 -->
+    <nav class="action-bar">
+      <button class="action-btn" data-action="feed">
+        <span class="action-icon">🍖</span>
+        <span class="action-label">喂食</span>
+      </button>
+      <button class="action-btn" data-action="play">
+        <span class="action-icon">🎮</span>
+        <span class="action-label">玩耍</span>
+      </button>
+      <button class="action-btn" data-action="rest">
+        <span class="action-icon">😴</span>
+        <span class="action-label">休息</span>
+      </button>
+      <button class="action-btn" data-action="train">
+        <span class="action-icon">💪</span>
+        <span class="action-label">训练</span>
+      </button>
+      <button class="action-btn" data-action="explore">
+        <span class="action-icon">🚀</span>
+        <span class="action-label">探索</span>
+      </button>
+    </nav>
+
+    <!-- 底部导航 -->
+    <nav class="bottom-nav">
+      <button class="nav-btn active" data-tab="home">
+        <span>🏠</span><span>主页</span>
+      </button>
+      <button class="nav-btn" data-tab="shop">
+        <span>🛒</span><span>商店</span>
+      </button>
+      <button class="nav-btn" data-tab="evolve">
+        <span>✨</span><span>进化</span>
+      </button>
+      <button class="nav-btn" data-tab="log">
+        <span>📜</span><span>日志</span>
+      </button>
+    </nav>
+  </section>
+
+  <!-- 商店面板 -->
+  <section id="panel-shop" class="overlay-panel hidden">
+    <div class="panel-header">
+      <h2>🛒 星际商店</h2>
+      <button class="close-btn" data-close="shop">✕</button>
+    </div>
+    <div class="shop-list" id="shop-list"></div>
+  </section>
+
+  <!-- 进化面板 -->
+  <section id="panel-evolve" class="overlay-panel hidden">
+    <div class="panel-header">
+      <h2>✨ 进化之路</h2>
+      <button class="close-btn" data-close="evolve">✕</button>
+    </div>
+    <div class="evolve-content" id="evolve-content"></div>
+  </section>
+
+  <!-- 日志面板 -->
+  <section id="panel-log" class="overlay-panel hidden">
+    <div class="panel-header">
+      <h2>📜 冒险日志</h2>
+      <button class="close-btn" data-close="log">✕</button>
+    </div>
+    <div class="log-list" id="log-list"></div>
+  </section>
+
+  <!-- 探索小游戏 -->
+  <section id="screen-explore" class="screen">
+    <div class="explore-header">
+      <button id="explore-back" class="back-btn">← 返回</button>
+      <span id="explore-timer">30</span>
+    </div>
+    <p class="explore-tip">点击出现的星星收集星尘！</p>
+    <div class="explore-field" id="explore-field"></div>
+    <div class="explore-score">得分: <span id="explore-score">0</span></div>
+  </section>
+
+  <!-- 通知 Toast -->
+  <div id="toast" class="toast hidden"></div>
+
+  <script src="js/game.js"></script>
+</body>
+</html>
