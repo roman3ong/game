@@ -4,9 +4,16 @@
 
 ## 在线游玩
 
-**直接点开就能玩：** https://cdn.jsdelivr.net/gh/roman3ong/game@main/index.html
+**推荐（永久链接，需先开启 GitHub Pages）：** https://roman3ong.github.io/game/
 
-手机 Safari / Chrome 打开即可，无需安装。
+> 首次使用请在 GitHub 仓库 [Settings → Pages](https://github.com/roman3ong/game/settings/pages) 中：
+> 1. **Source** 选 **Deploy from a branch**
+> 2. **Branch** 选 **gh-pages** / **/ (root)**
+> 3. 点 **Save**，等 1～2 分钟即可访问
+
+**临时链接（立即可玩）：** 在电脑上运行 `python3 -m http.server 8080`，手机访问 `http://<电脑IP>:8080`
+
+> ⚠️ 不要用 jsDelivr / raw.githubusercontent.com 链接，浏览器会把 HTML 当成代码显示。
 
 ## 玩法
 
