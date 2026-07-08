@@ -2,6 +2,12 @@
 
 一款可在手机上玩的星际主题宠物养成游戏。在浏览器中打开即可游玩，支持添加到主屏幕像 App 一样使用。
 
+## 在线游玩
+
+**直接点开就能玩：** https://cdn.jsdelivr.net/gh/roman3ong/game@main/index.html
+
+手机 Safari / Chrome 打开即可，无需安装。
+
 ## 玩法
 
 1. **孵化** — 点击宇宙蛋 5 次，孵化你的星际伙伴
