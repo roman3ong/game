@@ -14,12 +14,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Prepare site files
+      - name: Prepare site (standalone single file)
         run: |
-          mkdir -p _site/css _site/js
-          cp index.html _site/
-          cp css/style.css _site/css/
-          cp js/game.js _site/js/
+          mkdir -p _site
+          cp star-pets.html _site/index.html
+          cp star-pets.html _site/star-pets.html
 
       - name: Deploy to gh-pages branch
         uses: peaceiris/actions-gh-pages@v4
