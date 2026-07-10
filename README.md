@@ -8,12 +8,11 @@
 
 下载 [star-pets.html](https://github.com/roman3ong/game/raw/main/star-pets.html)，双击用浏览器打开即可。
 
-### 方式二：永久在线链接（需你点一次设置）
+### 方式二：在线直接玩（已就绪 ✅）
 
-1. 打开 https://github.com/roman3ong/game/settings/pages
-2. **Source** → **Deploy from a branch**
-3. **Branch** → **gh-pages** / **/ (root)** → **Save**
-4. 等 1～2 分钟，访问：**https://roman3ong.github.io/game/**
+**https://roman3ong.github.io/game/**
+
+手机 Safari / Chrome 打开即可，无需下载。
 
 ## 玩法
 
