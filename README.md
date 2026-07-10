@@ -2,25 +2,18 @@
 
 一款可在手机上玩的星际主题宠物养成游戏。在浏览器中打开即可游玩，支持添加到主屏幕像 App 一样使用。
 
-## 下载游玩
-
-**单文件版（推荐）：** 下载后双击用浏览器打开即可，无需其他文件。
-
-- 下载：[star-pets.html](https://github.com/roman3ong/game/raw/main/star-pets.html)
-- 或下载整个项目 ZIP：https://github.com/roman3ong/game/archive/refs/heads/main.zip
-
 ## 在线游玩
 
-**推荐（永久链接，需先开启 GitHub Pages）：** https://roman3ong.github.io/game/
+### 方式一：下载后本地玩（已就绪 ✅）
 
-> 首次使用请在 GitHub 仓库 [Settings → Pages](https://github.com/roman3ong/game/settings/pages) 中：
-> 1. **Source** 选 **Deploy from a branch**
-> 2. **Branch** 选 **gh-pages** / **/ (root)**
-> 3. 点 **Save**，等 1～2 分钟即可访问
+下载 [star-pets.html](https://github.com/roman3ong/game/raw/main/star-pets.html)，双击用浏览器打开即可。
 
-**临时链接（立即可玩）：** 在电脑上运行 `python3 -m http.server 8080`，手机访问 `http://<电脑IP>:8080`
+### 方式二：永久在线链接（需你点一次设置）
 
-> ⚠️ 不要用 jsDelivr / raw.githubusercontent.com 链接，浏览器会把 HTML 当成代码显示。
+1. 打开 https://github.com/roman3ong/game/settings/pages
+2. **Source** → **Deploy from a branch**
+3. **Branch** → **gh-pages** / **/ (root)** → **Save**
+4. 等 1～2 分钟，访问：**https://roman3ong.github.io/game/**
 
 ## 玩法
 
