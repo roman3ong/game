@@ -1,0 +1,1712 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#0a0e27">
+  <title>星际宠物 · Star Pets</title>
+  <style>
+/* ===== Reset & Base ===== */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+:root {
+  --bg-deep: #0a0e27;
+  --bg-card: rgba(20, 28, 60, 0.85);
+  --accent-purple: #a855f7;
+  --accent-blue: #3b82f6;
+  --accent-pink: #ec4899;
+  --accent-gold: #fbbf24;
+  --accent-green: #34d399;
+  --text-primary: #e2e8f0;
+  --text-muted: #94a3b8;
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-top: env(safe-area-inset-top, 0px);
+}
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  background: var(--bg-deep);
+  color: var(--text-primary);
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* ===== Star Background ===== */
+#stars-bg {
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 20% 50%, rgba(88, 28, 135, 0.3) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 20%, rgba(30, 58, 138, 0.4) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 80%, rgba(236, 72, 153, 0.15) 0%, transparent 50%),
+    linear-gradient(180deg, #0a0e27 0%, #1a1040 50%, #0a0e27 100%);
+  z-index: 0;
+}
+
+#stars-bg::before,
+#stars-bg::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(1px 1px at 10% 20%, rgba(255,255,255,0.8) 0%, transparent 100%),
+    radial-gradient(1px 1px at 30% 65%, rgba(255,255,255,0.6) 0%, transparent 100%),
+    radial-gradient(1.5px 1.5px at 50% 10%, rgba(255,255,255,0.9) 0%, transparent 100%),
+    radial-gradient(1px 1px at 70% 40%, rgba(255,255,255,0.7) 0%, transparent 100%),
+    radial-gradient(1px 1px at 90% 80%, rgba(255,255,255,0.5) 0%, transparent 100%),
+    radial-gradient(1.5px 1.5px at 15% 85%, rgba(255,255,255,0.8) 0%, transparent 100%),
+    radial-gradient(1px 1px at 85% 15%, rgba(255,255,255,0.6) 0%, transparent 100%),
+    radial-gradient(1px 1px at 45% 45%, rgba(255,255,255,0.4) 0%, transparent 100%),
+    radial-gradient(1px 1px at 60% 70%, rgba(255,255,255,0.7) 0%, transparent 100%),
+    radial-gradient(1.5px 1.5px at 25% 35%, rgba(255,255,255,0.9) 0%, transparent 100%);
+  animation: twinkle 4s ease-in-out infinite alternate;
+}
+
+#stars-bg::after {
+  animation-delay: 2s;
+  opacity: 0.6;
+}
+
+@keyframes twinkle {
+  0% { opacity: 0.5; }
+  100% { opacity: 1; }
+}
+
+/* ===== Screens ===== */
+.screen {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  display: none;
+  flex-direction: column;
+  padding-top: var(--safe-top);
+  padding-bottom: calc(var(--safe-bottom) + 8px);
+}
+
+.screen.active {
+  display: flex;
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* ===== Welcome Screen ===== */
+.welcome-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  text-align: center;
+}
+
+.logo {
+  font-size: clamp(1.8rem, 6vw, 2.5rem);
+  font-weight: 800;
+  background: linear-gradient(135deg, var(--accent-purple), var(--accent-pink), var(--accent-gold));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 8px;
+  letter-spacing: 2px;
+}
+
+.subtitle {
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  margin-bottom: 40px;
+}
+
+.egg-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.cosmic-egg {
+  position: relative;
+  width: 140px;
+  height: 180px;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.cosmic-egg:active {
+  transform: scale(0.95);
+}
+
+.egg-glow {
+  position: absolute;
+  inset: -20px;
+  background: radial-gradient(circle, rgba(168, 85, 247, 0.4) 0%, transparent 70%);
+  border-radius: 50%;
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+.egg-body {
+  font-size: 100px;
+  line-height: 1;
+  animation: float 3s ease-in-out infinite;
+  filter: drop-shadow(0 0 20px rgba(168, 85, 247, 0.6));
+}
+
+@keyframes pulse-glow {
+  0%, 100% { transform: scale(1); opacity: 0.6; }
+  50% { transform: scale(1.1); opacity: 1; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-12px); }
+}
+
+.tap-hint {
+  color: var(--accent-purple);
+  font-size: 0.9rem;
+  animation: blink 1.5s ease-in-out infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+.cosmic-egg.shaking {
+  animation: shake 0.5s ease-in-out;
+}
+
+@keyframes shake {
+  0%, 100% { transform: rotate(0); }
+  25% { transform: rotate(-8deg); }
+  75% { transform: rotate(8deg); }
+}
+
+.cosmic-egg.hatching .egg-body {
+  animation: hatch 0.8s ease forwards;
+}
+
+@keyframes hatch {
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.3); opacity: 0.5; }
+  100% { transform: scale(0); opacity: 0; }
+}
+
+/* Pet Selection */
+.pet-select {
+  width: 100%;
+  max-width: 420px;
+}
+
+.pet-select h2 {
+  font-size: 1.1rem;
+  margin-bottom: 20px;
+  color: var(--text-muted);
+}
+
+.pet-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.pet-card {
+  background: var(--bg-card);
+  border: 2px solid rgba(168, 85, 247, 0.3);
+  border-radius: 16px;
+  padding: 16px 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  backdrop-filter: blur(10px);
+}
+
+.pet-card:active {
+  transform: scale(0.96);
+  border-color: var(--accent-purple);
+  box-shadow: 0 0 20px rgba(168, 85, 247, 0.4);
+}
+
+.pet-card .emoji {
+  font-size: 48px;
+  display: block;
+  margin-bottom: 8px;
+}
+
+.pet-card .name {
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.pet-card .desc {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+/* ===== Game Screen ===== */
+.game-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background: rgba(10, 14, 39, 0.6);
+  backdrop-filter: blur(8px);
+}
+
+.pet-info {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.pet-name {
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.pet-level {
+  font-size: 0.85rem;
+  color: var(--accent-gold);
+}
+
+.coins {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(251, 191, 36, 0.15);
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-weight: 700;
+  color: var(--accent-gold);
+}
+
+/* Planet Scene */
+.planet-scene {
+  flex: 1;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.planet {
+  position: absolute;
+  bottom: -30%;
+  width: 120%;
+  height: 60%;
+  background: radial-gradient(ellipse at 50% 0%, #2d1b69 0%, #1a1040 40%, transparent 70%);
+  border-radius: 50%;
+  opacity: 0.6;
+}
+
+.pet-stage {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.pet-sprite {
+  font-size: clamp(80px, 22vw, 120px);
+  line-height: 1;
+  cursor: pointer;
+  transition: transform 0.3s;
+  filter: drop-shadow(0 8px 24px rgba(168, 85, 247, 0.5));
+  animation: idle-bounce 2.5s ease-in-out infinite;
+}
+
+.pet-sprite:active {
+  transform: scale(1.15);
+}
+
+.pet-sprite.happy { animation: happy-jump 0.6s ease; }
+.pet-sprite.eating { animation: eat-wiggle 0.5s ease; }
+.pet-sprite.sleeping { animation: sleep-float 2s ease-in-out infinite; }
+.pet-sprite.training { animation: train-pump 0.4s ease 3; }
+
+@keyframes idle-bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+@keyframes happy-jump {
+  0%, 100% { transform: translateY(0) scale(1); }
+  30% { transform: translateY(-30px) scale(1.1); }
+  60% { transform: translateY(-10px) scale(1.05); }
+}
+
+@keyframes eat-wiggle {
+  0%, 100% { transform: rotate(0); }
+  25% { transform: rotate(-5deg); }
+  75% { transform: rotate(5deg); }
+}
+
+@keyframes sleep-float {
+  0%, 100% { transform: translateY(0); opacity: 0.8; }
+  50% { transform: translateY(-5px); opacity: 1; }
+}
+
+@keyframes train-pump {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.15); }
+}
+
+.pet-mood-bubble {
+  position: absolute;
+  top: -10px;
+  right: -20px;
+  background: white;
+  color: #333;
+  padding: 6px 12px;
+  border-radius: 16px;
+  font-size: 1.2rem;
+  animation: bubble-pop 0.3s ease;
+}
+
+.pet-mood-bubble::after {
+  content: "";
+  position: absolute;
+  bottom: -6px;
+  left: 20px;
+  border: 6px solid transparent;
+  border-top-color: white;
+}
+
+@keyframes bubble-pop {
+  0% { transform: scale(0); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.particles {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.particle {
+  position: absolute;
+  font-size: 20px;
+  animation: particle-fly 1s ease forwards;
+}
+
+@keyframes particle-fly {
+  0% { transform: translate(0, 0) scale(1); opacity: 1; }
+  100% { transform: translate(var(--dx), var(--dy)) scale(0); opacity: 0; }
+}
+
+/* Stats Panel */
+.stats-panel {
+  padding: 8px 16px;
+  background: var(--bg-card);
+  backdrop-filter: blur(10px);
+  border-top: 1px solid rgba(168, 85, 247, 0.2);
+}
+
+.stat-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.stat-icon {
+  font-size: 14px;
+  width: 20px;
+  text-align: center;
+}
+
+.stat-bar {
+  flex: 1;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.stat-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.5s ease;
+}
+
+.stat-fill.hunger { background: linear-gradient(90deg, #f97316, #fbbf24); }
+.stat-fill.mood { background: linear-gradient(90deg, #ec4899, #a855f7); }
+.stat-fill.energy { background: linear-gradient(90deg, #3b82f6, #06b6d4); }
+.stat-fill.health { background: linear-gradient(90deg, #ef4444, #34d399); }
+
+.stat-val {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  width: 28px;
+  text-align: right;
+}
+
+.exp-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.exp-bar {
+  flex: 1;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.exp-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent-purple), var(--accent-pink));
+  border-radius: 3px;
+  transition: width 0.5s ease;
+}
+
+/* Action Bar */
+.action-bar {
+  display: flex;
+  justify-content: space-around;
+  padding: 8px 8px 4px;
+  background: rgba(10, 14, 39, 0.8);
+  gap: 4px;
+}
+
+.action-btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 10px 4px;
+  background: rgba(168, 85, 247, 0.15);
+  border: 1px solid rgba(168, 85, 247, 0.3);
+  border-radius: 12px;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.15s;
+  min-height: 56px;
+}
+
+.action-btn:active:not(:disabled) {
+  transform: scale(0.92);
+  background: rgba(168, 85, 247, 0.35);
+}
+
+.action-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.action-btn.cooldown {
+  opacity: 0.5;
+}
+
+.action-icon {
+  font-size: 22px;
+}
+
+.action-label {
+  font-size: 0.7rem;
+}
+
+/* Bottom Nav */
+.bottom-nav {
+  display: flex;
+  background: rgba(10, 14, 39, 0.95);
+  border-top: 1px solid rgba(168, 85, 247, 0.2);
+  padding-bottom: var(--safe-bottom);
+}
+
+.nav-btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 8px;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 0.65rem;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.nav-btn span:first-child {
+  font-size: 20px;
+}
+
+.nav-btn.active {
+  color: var(--accent-purple);
+}
+
+.nav-btn:active {
+  opacity: 0.7;
+}
+
+/* Overlay Panels */
+.overlay-panel {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: rgba(10, 14, 39, 0.95);
+  backdrop-filter: blur(12px);
+  display: flex;
+  flex-direction: column;
+  padding-top: var(--safe-top);
+  padding-bottom: var(--safe-bottom);
+  animation: slide-up 0.3s ease;
+}
+
+@keyframes slide-up {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(168, 85, 247, 0.2);
+}
+
+.panel-header h2 {
+  font-size: 1.2rem;
+}
+
+.close-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  color: var(--text-primary);
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.close-btn:active {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* Shop */
+.shop-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.shop-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  background: var(--bg-card);
+  border-radius: 12px;
+  margin-bottom: 10px;
+  border: 1px solid rgba(168, 85, 247, 0.2);
+}
+
+.shop-item .item-icon {
+  font-size: 36px;
+}
+
+.shop-item .item-info {
+  flex: 1;
+}
+
+.shop-item .item-name {
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.shop-item .item-desc {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.shop-item .buy-btn {
+  padding: 8px 14px;
+  background: linear-gradient(135deg, var(--accent-purple), var(--accent-pink));
+  border: none;
+  border-radius: 20px;
+  color: white;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.shop-item .buy-btn:active {
+  transform: scale(0.95);
+}
+
+.shop-item .buy-btn:disabled {
+  opacity: 0.4;
+}
+
+/* Evolve */
+.evolve-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+  text-align: center;
+}
+
+.evolve-stages {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  margin: 24px 0;
+  flex-wrap: wrap;
+}
+
+.evolve-stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+  border-radius: 12px;
+  min-width: 80px;
+}
+
+.evolve-stage.current {
+  background: rgba(168, 85, 247, 0.2);
+  border: 2px solid var(--accent-purple);
+}
+
+.evolve-stage.locked {
+  opacity: 0.4;
+}
+
+.evolve-stage .stage-emoji {
+  font-size: 40px;
+}
+
+.evolve-stage .stage-label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.evolve-arrow {
+  font-size: 20px;
+  color: var(--text-muted);
+}
+
+.evolve-btn {
+  padding: 14px 40px;
+  background: linear-gradient(135deg, var(--accent-gold), #f97316);
+  border: none;
+  border-radius: 25px;
+  color: white;
+  font-weight: 700;
+  font-size: 1rem;
+  cursor: pointer;
+  margin-top: 16px;
+}
+
+.evolve-btn:active:not(:disabled) {
+  transform: scale(0.96);
+}
+
+.evolve-btn:disabled {
+  opacity: 0.4;
+}
+
+.evolve-info {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  margin-top: 12px;
+}
+
+/* Log */
+.log-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.log-entry {
+  padding: 10px 14px;
+  background: var(--bg-card);
+  border-radius: 8px;
+  margin-bottom: 8px;
+  font-size: 0.85rem;
+  border-left: 3px solid var(--accent-purple);
+}
+
+.log-entry .log-time {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+
+/* Explore Mini-game */
+#screen-explore {
+  background: rgba(10, 14, 39, 0.95);
+  z-index: 50;
+}
+
+.explore-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+}
+
+.back-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  color: var(--text-primary);
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+#explore-timer {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--accent-gold);
+}
+
+.explore-tip {
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  padding: 8px;
+}
+
+.explore-field {
+  flex: 1;
+  position: relative;
+  margin: 8px 16px;
+  background: rgba(168, 85, 247, 0.08);
+  border-radius: 16px;
+  border: 1px dashed rgba(168, 85, 247, 0.3);
+  overflow: hidden;
+}
+
+.explore-star {
+  position: absolute;
+  font-size: 32px;
+  cursor: pointer;
+  animation: star-appear 0.3s ease;
+  filter: drop-shadow(0 0 8px rgba(251, 191, 36, 0.8));
+}
+
+.explore-star:active {
+  transform: scale(1.3);
+}
+
+@keyframes star-appear {
+  from { transform: scale(0) rotate(180deg); opacity: 0; }
+  to { transform: scale(1) rotate(0); opacity: 1; }
+}
+
+.explore-score {
+  text-align: center;
+  padding: 16px;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+/* Toast */
+.toast {
+  position: fixed;
+  top: calc(var(--safe-top) + 16px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(168, 85, 247, 0.9);
+  color: white;
+  padding: 10px 24px;
+  border-radius: 25px;
+  font-size: 0.9rem;
+  z-index: 200;
+  backdrop-filter: blur(8px);
+  animation: toast-in 0.3s ease;
+  max-width: 90%;
+  text-align: center;
+}
+
+@keyframes toast-in {
+  from { transform: translateX(-50%) translateY(-20px); opacity: 0; }
+  to { transform: translateX(-50%) translateY(0); opacity: 1; }
+}
+
+/* Responsive tweaks */
+@media (min-width: 768px) {
+  .screen {
+    max-width: 430px;
+    margin: 0 auto;
+    left: 50%;
+    transform: translateX(-50%);
+    border-left: 1px solid rgba(168, 85, 247, 0.2);
+    border-right: 1px solid rgba(168, 85, 247, 0.2);
+  }
+
+  .overlay-panel {
+    max-width: 430px;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+}
+
+@media (max-height: 600px) {
+  .pet-sprite {
+    font-size: 70px;
+  }
+
+  .action-btn {
+    min-height: 48px;
+    padding: 6px 4px;
+  }
+
+  .stat-row {
+    margin-bottom: 4px;
+  }
+}
+
+</style>
+</head>
+<body>
+  <div id="stars-bg"></div>
+
+  <!-- 欢迎 / 选宠 -->
+  <section id="screen-welcome" class="screen active">
+    <div class="welcome-content">
+      <div class="logo">✦ 星际宠物 ✦</div>
+      <p class="subtitle">在浩瀚宇宙中，孵化你的专属伙伴</p>
+      <div class="egg-container" id="egg-container">
+        <div class="cosmic-egg" id="cosmic-egg">
+          <div class="egg-glow"></div>
+          <div class="egg-body">🥚</div>
+        </div>
+        <p class="tap-hint" id="tap-hint">点击蛋来孵化</p>
+      </div>
+      <div class="pet-select hidden" id="pet-select">
+        <h2>选择你的星际伙伴</h2>
+        <div class="pet-cards" id="pet-cards"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 主游戏 -->
+  <section id="screen-game" class="screen">
+    <header class="game-header">
+      <div class="pet-info">
+        <span class="pet-name" id="display-name">星尘兽</span>
+        <span class="pet-level">Lv.<span id="display-level">1</span></span>
+      </div>
+      <div class="coins">
+        <span>⭐</span>
+        <span id="display-coins">0</span>
+      </div>
+    </header>
+
+    <div class="planet-scene">
+      <div class="planet"></div>
+      <div class="pet-stage" id="pet-stage">
+        <div class="pet-sprite" id="pet-sprite">🌟</div>
+        <div class="pet-mood-bubble hidden" id="mood-bubble"></div>
+        <div class="particles" id="particles"></div>
+      </div>
+    </div>
+
+    <!-- 状态条 -->
+    <div class="stats-panel">
+      <div class="stat-row">
+        <span class="stat-icon">🍖</span>
+        <div class="stat-bar"><div class="stat-fill hunger" id="bar-hunger"></div></div>
+        <span class="stat-val" id="val-hunger">100</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-icon">💜</span>
+        <div class="stat-bar"><div class="stat-fill mood" id="bar-mood"></div></div>
+        <span class="stat-val" id="val-mood">100</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-icon">⚡</span>
+        <div class="stat-bar"><div class="stat-fill energy" id="bar-energy"></div></div>
+        <span class="stat-val" id="val-energy">100</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-icon">❤️</span>
+        <div class="stat-bar"><div class="stat-fill health" id="bar-health"></div></div>
+        <span class="stat-val" id="val-health">100</span>
+      </div>
+      <div class="exp-row">
+        <span>EXP</span>
+        <div class="exp-bar"><div class="exp-fill" id="bar-exp"></div></div>
+      </div>
+    </div>
+
+    <!-- 操作按钮 -->
+    <nav class="action-bar">
+      <button class="action-btn" data-action="feed">
+        <span class="action-icon">🍖</span>
+        <span class="action-label">喂食</span>
+      </button>
+      <button class="action-btn" data-action="play">
+        <span class="action-icon">🎮</span>
+        <span class="action-label">玩耍</span>
+      </button>
+      <button class="action-btn" data-action="rest">
+        <span class="action-icon">😴</span>
+        <span class="action-label">休息</span>
+      </button>
+      <button class="action-btn" data-action="train">
+        <span class="action-icon">💪</span>
+        <span class="action-label">训练</span>
+      </button>
+      <button class="action-btn" data-action="explore">
+        <span class="action-icon">🚀</span>
+        <span class="action-label">探索</span>
+      </button>
+    </nav>
+
+    <!-- 底部导航 -->
+    <nav class="bottom-nav">
+      <button class="nav-btn active" data-tab="home">
+        <span>🏠</span><span>主页</span>
+      </button>
+      <button class="nav-btn" data-tab="shop">
+        <span>🛒</span><span>商店</span>
+      </button>
+      <button class="nav-btn" data-tab="evolve">
+        <span>✨</span><span>进化</span>
+      </button>
+      <button class="nav-btn" data-tab="log">
+        <span>📜</span><span>日志</span>
+      </button>
+    </nav>
+  </section>
+
+  <!-- 商店面板 -->
+  <section id="panel-shop" class="overlay-panel hidden">
+    <div class="panel-header">
+      <h2>🛒 星际商店</h2>
+      <button class="close-btn" data-close="shop">✕</button>
+    </div>
+    <div class="shop-list" id="shop-list"></div>
+  </section>
+
+  <!-- 进化面板 -->
+  <section id="panel-evolve" class="overlay-panel hidden">
+    <div class="panel-header">
+      <h2>✨ 进化之路</h2>
+      <button class="close-btn" data-close="evolve">✕</button>
+    </div>
+    <div class="evolve-content" id="evolve-content"></div>
+  </section>
+
+  <!-- 日志面板 -->
+  <section id="panel-log" class="overlay-panel hidden">
+    <div class="panel-header">
+      <h2>📜 冒险日志</h2>
+      <button class="close-btn" data-close="log">✕</button>
+    </div>
+    <div class="log-list" id="log-list"></div>
+  </section>
+
+  <!-- 探索小游戏 -->
+  <section id="screen-explore" class="screen">
+    <div class="explore-header">
+      <button id="explore-back" class="back-btn">← 返回</button>
+      <span id="explore-timer">30</span>
+    </div>
+    <p class="explore-tip">点击出现的星星收集星尘！</p>
+    <div class="explore-field" id="explore-field"></div>
+    <div class="explore-score">得分: <span id="explore-score">0</span></div>
+  </section>
+
+  <!-- 通知 Toast -->
+  <div id="toast" class="toast hidden"></div>
+
+  <script>
+/**
+ * 星际宠物 · Star Pets
+ * 移动端星际宠物养成游戏
+ */
+
+// ===== 宠物种类定义 =====
+const PET_SPECIES = {
+  stardust: {
+    id: 'stardust',
+    name: '星尘兽',
+    desc: '由宇宙尘埃凝聚而成',
+    emoji: ['🌟', '⭐', '💫'],
+    color: '#fbbf24',
+  },
+  moonspirit: {
+    id: 'moonspirit',
+    name: '月魄精灵',
+    desc: '月光的温柔守护者',
+    emoji: ['🌙', '🌕', '✨'],
+    color: '#a855f7',
+  },
+  comet: {
+    id: 'comet',
+    name: '彗尾小龙',
+    desc: '划过天际的火焰之子',
+    emoji: ['🔥', '🐉', '☄️'],
+    color: '#f97316',
+  },
+  nebula: {
+    id: 'nebula',
+    name: '星云猫',
+    desc: '诞生于彩色星云之中',
+    emoji: ['🐱', '🌈', '🐾'],
+    color: '#ec4899',
+  },
+};
+
+const EVOLVE_LEVELS = [1, 5, 10];
+const STAGE_NAMES = ['幼体', '成长期', '完全体'];
+
+const SHOP_ITEMS = [
+  { id: 'starFood', name: '星尘口粮', desc: '饱食度 +30', icon: '🍖', price: 10, effect: { hunger: 30 } },
+  { id: 'cosmicTreat', name: '宇宙零食', desc: '心情 +25', icon: '🍬', price: 15, effect: { mood: 25 } },
+  { id: 'energyDrink', name: '能量饮料', desc: '能量 +30', icon: '🥤', price: 12, effect: { energy: 30 } },
+  { id: 'healPotion', name: '治愈药剂', desc: '健康 +25', icon: '💊', price: 20, effect: { health: 25 } },
+  { id: 'megaPack', name: '全能补给', desc: '全属性 +15', icon: '🎁', price: 35, effect: { hunger: 15, mood: 15, energy: 15, health: 15 } },
+];
+
+const MOOD_MESSAGES = ['❤️', '😊', '🎵', '✨', '💕', '🌟'];
+
+const SAVE_KEY = 'starPets_save';
+
+// ===== 游戏状态 =====
+let state = {
+  pet: null,
+  coins: 0,
+  inventory: {},
+  logs: [],
+  lastTick: Date.now(),
+  actionCooldowns: {},
+};
+
+let exploreTimer = null;
+let exploreScore = 0;
+let tickInterval = null;
+
+// ===== DOM 元素 =====
+const $ = (sel) => document.querySelector(sel);
+const $$ = (sel) => document.querySelectorAll(sel);
+
+// ===== 初始化 =====
+function init() {
+  createStars();
+  loadGame();
+  bindEvents();
+
+  if (state.pet) {
+    showScreen('screen-game');
+    startGameLoop();
+    renderGame();
+  } else {
+    showScreen('screen-welcome');
+    renderPetSelect();
+  }
+}
+
+function createStars() {
+  const bg = $('#stars-bg');
+  for (let i = 0; i < 30; i++) {
+    const star = document.createElement('div');
+    star.style.cssText = `
+      position:absolute;
+      width:${Math.random() * 2 + 1}px;
+      height:${Math.random() * 2 + 1}px;
+      background:white;
+      border-radius:50%;
+      left:${Math.random() * 100}%;
+      top:${Math.random() * 100}%;
+      opacity:${Math.random() * 0.5 + 0.3};
+      animation: twinkle ${Math.random() * 3 + 2}s ease-in-out infinite alternate;
+    `;
+    bg.appendChild(star);
+  }
+}
+
+function bindEvents() {
+  // 孵化蛋
+  $('#cosmic-egg')?.addEventListener('click', onEggTap);
+
+  // 操作按钮
+  $$('.action-btn').forEach((btn) => {
+    btn.addEventListener('click', () => doAction(btn.dataset.action));
+  });
+
+  // 点击宠物
+  $('#pet-sprite')?.addEventListener('click', onPetTap);
+
+  // 底部导航
+  $$('.nav-btn').forEach((btn) => {
+    btn.addEventListener('click', () => openPanel(btn.dataset.tab));
+  });
+
+  // 关闭面板
+  $$('.close-btn').forEach((btn) => {
+    btn.addEventListener('click', () => closePanel(btn.dataset.close));
+  });
+
+  // 探索返回
+  $('#explore-back')?.addEventListener('click', endExplore);
+
+  // 阻止双击缩放
+  document.addEventListener('touchstart', (e) => {
+    if (e.touches.length > 1) e.preventDefault();
+  }, { passive: false });
+
+  let lastTouch = 0;
+  document.addEventListener('touchend', (e) => {
+    const now = Date.now();
+    if (now - lastTouch <= 300) e.preventDefault();
+    lastTouch = now;
+  }, { passive: false });
+}
+
+// ===== 欢迎 / 选宠 =====
+let eggTaps = 0;
+
+function onEggTap() {
+  const egg = $('#cosmic-egg');
+  egg.classList.add('shaking');
+  eggTaps++;
+
+  setTimeout(() => egg.classList.remove('shaking'), 500);
+
+  if (eggTaps >= 5) {
+    egg.classList.add('hatching');
+    setTimeout(() => {
+      $('#egg-container').classList.add('hidden');
+      $('#pet-select').classList.remove('hidden');
+    }, 800);
+  }
+}
+
+function renderPetSelect() {
+  const container = $('#pet-cards');
+  container.innerHTML = '';
+
+  Object.values(PET_SPECIES).forEach((species) => {
+    const card = document.createElement('div');
+    card.className = 'pet-card';
+    card.innerHTML = `
+      <span class="emoji">${species.emoji[0]}</span>
+      <span class="name">${species.name}</span>
+      <span class="desc">${species.desc}</span>
+    `;
+    card.addEventListener('click', () => selectPet(species.id));
+    container.appendChild(card);
+  });
+}
+
+function selectPet(speciesId) {
+  const species = PET_SPECIES[speciesId];
+  state.pet = {
+    speciesId,
+    name: species.name,
+    level: 1,
+    exp: 0,
+    stage: 0,
+    hunger: 80,
+    mood: 80,
+    energy: 80,
+    health: 100,
+    bornAt: Date.now(),
+  };
+  state.coins = 50;
+  addLog(`🎉 ${species.name} 诞生了！欢迎来到星际世界！`);
+  saveGame();
+  showScreen('screen-game');
+  startGameLoop();
+  renderGame();
+  showToast(`欢迎，${species.name}！`);
+}
+
+// ===== 游戏循环 =====
+function startGameLoop() {
+  if (tickInterval) clearInterval(tickInterval);
+  tickInterval = setInterval(gameTick, 10000); // 每10秒衰减
+}
+
+function gameTick() {
+  if (!state.pet) return;
+
+  const pet = state.pet;
+  pet.hunger = clamp(pet.hunger - 2, 0, 100);
+  pet.mood = clamp(pet.mood - 1.5, 0, 100);
+  pet.energy = clamp(pet.energy - 1, 0, 100);
+
+  if (pet.hunger < 20 || pet.mood < 20) {
+    pet.health = clamp(pet.health - 3, 0, 100);
+  } else if (pet.health < 100) {
+    pet.health = clamp(pet.health + 1, 0, 100);
+  }
+
+  state.lastTick = Date.now();
+  saveGame();
+  renderStats();
+
+  if (pet.health <= 0) {
+    showToast('宠物健康值归零！请尽快治疗！');
+    pet.health = 1;
+  }
+}
+
+// ===== 操作 =====
+const ACTION_CONFIG = {
+  feed: { hunger: 25, energy: -5, exp: 5, coins: 0, anim: 'eating', msg: '好好吃饭~', cooldown: 3000 },
+  play: { mood: 20, energy: -15, hunger: -5, exp: 8, coins: 0, anim: 'happy', msg: '玩得好开心！', cooldown: 3000 },
+  rest: { energy: 30, hunger: -5, exp: 3, coins: 0, anim: 'sleeping', msg: 'zzz...', cooldown: 5000 },
+  train: { energy: -20, mood: -5, hunger: -10, exp: 15, coins: 5, anim: 'training', msg: '变强了！', cooldown: 5000 },
+  explore: { energy: -25, mood: 10, exp: 0, coins: 0, anim: 'happy', msg: '', cooldown: 0, special: true },
+};
+
+function doAction(action) {
+  if (!state.pet) return;
+
+  const config = ACTION_CONFIG[action];
+  if (!config) return;
+
+  if (config.special && action === 'explore') {
+    if (state.pet.energy < 25) {
+      showToast('能量不足，无法探索！');
+      return;
+    }
+    startExplore();
+    return;
+  }
+
+  const now = Date.now();
+  if (state.actionCooldowns[action] && now - state.actionCooldowns[action] < config.cooldown) {
+    return;
+  }
+
+  const pet = state.pet;
+
+  if (action === 'train' && pet.energy < 20) {
+    showToast('能量不足，无法训练！');
+    return;
+  }
+  if (action === 'play' && pet.energy < 15) {
+    showToast('太累了，先休息一下吧！');
+    return;
+  }
+
+  applyEffect(pet, config);
+  addExp(config.exp || 0);
+  state.coins += config.coins || 0;
+  state.actionCooldowns[action] = now;
+
+  playAnim(config.anim);
+  if (config.msg) showMoodBubble(config.msg);
+  addLog(getActionLog(action));
+  saveGame();
+  renderGame();
+
+  if (config.cooldown) {
+    const btn = document.querySelector(`[data-action="${action}"]`);
+    btn?.classList.add('cooldown');
+    setTimeout(() => btn?.classList.remove('cooldown'), config.cooldown);
+  }
+}
+
+function applyEffect(pet, effect) {
+  ['hunger', 'mood', 'energy', 'health'].forEach((key) => {
+    if (effect[key]) pet[key] = clamp(pet[key] + effect[key], 0, 100);
+  });
+}
+
+function getActionLog(action) {
+  const names = { feed: '喂食', play: '玩耍', rest: '休息', train: '训练', explore: '探索' };
+  return `${names[action] || action}了一次`;
+}
+
+function onPetTap() {
+  if (!state.pet) return;
+  playAnim('happy');
+  const msg = MOOD_MESSAGES[Math.floor(Math.random() * MOOD_MESSAGES.length)];
+  showMoodBubble(msg);
+  state.pet.mood = clamp(state.pet.mood + 2, 0, 100);
+  saveGame();
+  renderStats();
+}
+
+// ===== 经验 & 升级 =====
+function addExp(amount) {
+  if (!state.pet || amount <= 0) return;
+
+  const pet = state.pet;
+  pet.exp += amount;
+  const needed = expToLevel(pet.level);
+
+  while (pet.exp >= needed && pet.level < 20) {
+    pet.exp -= needed;
+    pet.level++;
+    addLog(`🎊 升级了！当前等级 Lv.${pet.level}`);
+    showToast(`升级！Lv.${pet.level}`);
+    spawnParticles('⭐');
+  }
+
+  saveGame();
+}
+
+function expToLevel(level) {
+  return Math.floor(50 + level * 30);
+}
+
+function getEvolveStage(level) {
+  if (level >= EVOLVE_LEVELS[2]) return 2;
+  if (level >= EVOLVE_LEVELS[1]) return 1;
+  return 0;
+}
+
+// ===== 探索小游戏 =====
+function startExplore() {
+  applyEffect(state.pet, { energy: -25, mood: 10 });
+  exploreScore = 0;
+  showScreen('screen-explore');
+  $('#explore-score').textContent = '0';
+  $('#explore-field').innerHTML = '';
+
+  let timeLeft = 30;
+  $('#explore-timer').textContent = timeLeft;
+
+  spawnExploreStar();
+  const starInterval = setInterval(spawnExploreStar, 800);
+
+  exploreTimer = setInterval(() => {
+    timeLeft--;
+    $('#explore-timer').textContent = timeLeft;
+    if (timeLeft <= 0) {
+      clearInterval(exploreTimer);
+      clearInterval(starInterval);
+      finishExplore();
+    }
+  }, 1000);
+}
+
+function spawnExploreStar() {
+  const field = $('#explore-field');
+  if (!field) return;
+
+  const star = document.createElement('div');
+  star.className = 'explore-star';
+  star.textContent = ['⭐', '✨', '💫', '🌟'][Math.floor(Math.random() * 4)];
+  star.style.left = `${Math.random() * 80 + 5}%`;
+  star.style.top = `${Math.random() * 80 + 5}%`;
+
+  star.addEventListener('click', () => {
+    exploreScore += Math.floor(Math.random() * 3) + 1;
+    $('#explore-score').textContent = exploreScore;
+    star.remove();
+  });
+
+  field.appendChild(star);
+
+  setTimeout(() => star.remove(), 2000);
+}
+
+function endExplore() {
+  if (exploreTimer) clearInterval(exploreTimer);
+  finishExplore();
+}
+
+function finishExplore() {
+  const earned = exploreScore * 2;
+  state.coins += earned;
+  addExp(exploreScore * 3);
+  addLog(`🚀 探索完成！获得 ${earned} 星尘，${exploreScore * 3} 经验`);
+  showToast(`探索结束！+${earned} 星尘`);
+  saveGame();
+  showScreen('screen-game');
+  renderGame();
+}
+
+// ===== 商店 =====
+function renderShop() {
+  const list = $('#shop-list');
+  list.innerHTML = '';
+
+  SHOP_ITEMS.forEach((item) => {
+    const div = document.createElement('div');
+    div.className = 'shop-item';
+    div.innerHTML = `
+      <span class="item-icon">${item.icon}</span>
+      <div class="item-info">
+        <div class="item-name">${item.name}</div>
+        <div class="item-desc">${item.desc}</div>
+      </div>
+      <button class="buy-btn" ${state.coins < item.price ? 'disabled' : ''}>⭐ ${item.price}</button>
+    `;
+    div.querySelector('.buy-btn').addEventListener('click', () => buyItem(item));
+    list.appendChild(div);
+  });
+}
+
+function buyItem(item) {
+  if (state.coins < item.price) {
+    showToast('星尘不足！');
+    return;
+  }
+
+  state.coins -= item.price;
+  applyEffect(state.pet, item.effect);
+  addLog(`🛒 购买了 ${item.name}`);
+  showToast(`使用了 ${item.name}！`);
+  playAnim('happy');
+  saveGame();
+  renderGame();
+  renderShop();
+}
+
+// ===== 进化 =====
+function renderEvolve() {
+  const container = $('#evolve-content');
+  const pet = state.pet;
+  const species = PET_SPECIES[pet.speciesId];
+  const currentStage = getEvolveStage(pet.level);
+
+  let html = `<p>当前: ${species.name} · ${STAGE_NAMES[currentStage]}</p>`;
+  html += '<div class="evolve-stages">';
+
+  species.emoji.forEach((emoji, i) => {
+    const isCurrent = i === currentStage;
+    const isLocked = i > currentStage;
+    html += `
+      <div class="evolve-stage ${isCurrent ? 'current' : ''} ${isLocked ? 'locked' : ''}">
+        <span class="stage-emoji">${emoji}</span>
+        <span class="stage-label">${STAGE_NAMES[i]}</span>
+        <span class="stage-label">Lv.${EVOLVE_LEVELS[i]}</span>
+      </div>
+    `;
+    if (i < species.emoji.length - 1) html += '<span class="evolve-arrow">→</span>';
+  });
+
+  html += '</div>';
+
+  const nextStage = currentStage + 1;
+  if (nextStage < 3) {
+    const canEvolve = pet.level >= EVOLVE_LEVELS[nextStage];
+    html += `
+      <button class="evolve-btn" ${canEvolve ? '' : 'disabled'} id="evolve-btn">
+        ${canEvolve ? '✨ 进化！' : `需要 Lv.${EVOLVE_LEVELS[nextStage]}`}
+      </button>
+      <p class="evolve-info">进化后外观将发生变化</p>
+    `;
+  } else {
+    html += '<p class="evolve-info">🎉 已达到最终形态！</p>';
+  }
+
+  container.innerHTML = html;
+
+  $('#evolve-btn')?.addEventListener('click', () => {
+    if (currentStage < 2 && pet.level >= EVOLVE_LEVELS[currentStage + 1]) {
+      pet.stage = currentStage + 1;
+      addLog(`✨ ${species.name} 进化成了 ${STAGE_NAMES[pet.stage]}！`);
+      showToast('进化成功！');
+      spawnParticles('✨');
+      playAnim('happy');
+      saveGame();
+      renderGame();
+      renderEvolve();
+    }
+  });
+}
+
+// ===== 日志 =====
+function renderLogs() {
+  const list = $('#log-list');
+  list.innerHTML = state.logs.length
+    ? state.logs.slice(0, 50).map((entry) => `
+        <div class="log-entry">
+          <div class="log-time">${entry.time}</div>
+          <div>${entry.text}</div>
+        </div>
+      `).join('')
+    : '<p style="text-align:center;color:var(--text-muted);padding:20px;">暂无记录</p>';
+}
+
+function addLog(text) {
+  const now = new Date();
+  const time = `${now.getMonth() + 1}/${now.getDate()} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+  state.logs.unshift({ time, text });
+  if (state.logs.length > 100) state.logs.length = 100;
+}
+
+// ===== 渲染 =====
+function renderGame() {
+  if (!state.pet) return;
+
+  const pet = state.pet;
+  const species = PET_SPECIES[pet.speciesId];
+  const stage = getEvolveStage(pet.level);
+
+  $('#display-name').textContent = pet.name;
+  $('#display-level').textContent = pet.level;
+  $('#display-coins').textContent = state.coins;
+  $('#pet-sprite').textContent = species.emoji[stage];
+
+  renderStats();
+}
+
+function renderStats() {
+  if (!state.pet) return;
+  const pet = state.pet;
+
+  ['hunger', 'mood', 'energy', 'health'].forEach((stat) => {
+    const val = Math.round(pet[stat]);
+    $(`#bar-${stat}`).style.width = `${val}%`;
+    $(`#val-${stat}`).textContent = val;
+  });
+
+  const expNeeded = expToLevel(pet.level);
+  const expPercent = pet.level >= 20 ? 100 : (pet.exp / expNeeded) * 100;
+  $('#bar-exp').style.width = `${expPercent}%`;
+}
+
+// ===== 动画 & 特效 =====
+function playAnim(className) {
+  const sprite = $('#pet-sprite');
+  if (!sprite) return;
+  sprite.classList.remove('happy', 'eating', 'sleeping', 'training');
+  void sprite.offsetWidth;
+  sprite.classList.add(className);
+  setTimeout(() => sprite.classList.remove(className), 2000);
+}
+
+function showMoodBubble(text) {
+  const bubble = $('#mood-bubble');
+  if (!bubble) return;
+  bubble.textContent = text;
+  bubble.classList.remove('hidden');
+  setTimeout(() => bubble.classList.add('hidden'), 2000);
+}
+
+function spawnParticles(emoji) {
+  const container = $('#particles');
+  if (!container) return;
+
+  for (let i = 0; i < 6; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    p.textContent = emoji;
+    p.style.left = '50%';
+    p.style.top = '50%';
+    p.style.setProperty('--dx', `${(Math.random() - 0.5) * 120}px`);
+    p.style.setProperty('--dy', `${-Math.random() * 100 - 30}px`);
+    container.appendChild(p);
+    setTimeout(() => p.remove(), 1000);
+  }
+}
+
+// ===== UI 工具 =====
+function showScreen(id) {
+  $$('.screen').forEach((s) => s.classList.remove('active'));
+  $(`#${id}`)?.classList.add('active');
+}
+
+function openPanel(tab) {
+  $$('.nav-btn').forEach((b) => b.classList.toggle('active', b.dataset.tab === tab));
+
+  if (tab === 'home') {
+    closeAllPanels();
+    return;
+  }
+
+  closeAllPanels();
+  const panel = $(`#panel-${tab}`);
+  panel?.classList.remove('hidden');
+
+  if (tab === 'shop') renderShop();
+  if (tab === 'evolve') renderEvolve();
+  if (tab === 'log') renderLogs();
+}
+
+function closePanel(tab) {
+  $(`#panel-${tab}`)?.classList.add('hidden');
+  $$('.nav-btn').forEach((b) => b.classList.toggle('active', b.dataset.tab === 'home'));
+}
+
+function closeAllPanels() {
+  $$('.overlay-panel').forEach((p) => p.classList.add('hidden'));
+}
+
+let toastTimer = null;
+function showToast(msg) {
+  const toast = $('#toast');
+  toast.textContent = msg;
+  toast.classList.remove('hidden');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toast.classList.add('hidden'), 2500);
+}
+
+function clamp(val, min, max) {
+  return Math.max(min, Math.min(max, val));
+}
+
+// ===== 存档 =====
+function saveGame() {
+  try {
+    localStorage.setItem(SAVE_KEY, JSON.stringify(state));
+  } catch (e) {
+    console.warn('Save failed:', e);
+  }
+}
+
+function loadGame() {
+  try {
+    const saved = localStorage.getItem(SAVE_KEY);
+    if (saved) {
+      const data = JSON.parse(saved);
+      state = { ...state, ...data };
+      // 离线衰减
+      if (state.pet && state.lastTick) {
+        const elapsed = Date.now() - state.lastTick;
+        const ticks = Math.floor(elapsed / 10000);
+        for (let i = 0; i < Math.min(ticks, 60); i++) {
+          state.pet.hunger = clamp(state.pet.hunger - 2, 0, 100);
+          state.pet.mood = clamp(state.pet.mood - 1.5, 0, 100);
+          state.pet.energy = clamp(state.pet.energy - 1, 0, 100);
+        }
+        state.lastTick = Date.now();
+      }
+    }
+  } catch (e) {
+    console.warn('Load failed:', e);
+  }
+}
+
+// ===== 启动 =====
+document.addEventListener('DOMContentLoaded', init);
+
+</script>
+</body>
+</html>
