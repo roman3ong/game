@@ -2,6 +2,13 @@
 
 一款可在手机上玩的星际主题宠物养成游戏。在浏览器中打开即可游玩，支持添加到主屏幕像 App 一样使用。
 
+## 下载游玩
+
+**单文件版（推荐）：** 下载后双击用浏览器打开即可，无需其他文件。
+
+- 下载：[star-pets.html](https://github.com/roman3ong/game/raw/main/star-pets.html)
+- 或下载整个项目 ZIP：https://github.com/roman3ong/game/archive/refs/heads/main.zip
+
 ## 在线游玩
 
 **推荐（永久链接，需先开启 GitHub Pages）：** https://roman3ong.github.io/game/
